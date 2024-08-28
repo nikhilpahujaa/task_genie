@@ -26,6 +26,9 @@ const taskSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    file: {
+        type: String
     }
 });
 
