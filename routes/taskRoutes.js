@@ -4,18 +4,20 @@ const router = express.Router();
 
 module.exports = (upload) => {
 
-    router.post('/', upload.single('file'), async (req, res) => {
+    router.post('/', upload.array('files'), async (req, res) => {
         try {
+            const fileNames = req.files.map(file => file.filename);
+
             const task = new Task({
                 userEmail: req.body.userEmail,
                 organization: req.body.organization,
                 taskTitle: req.body.taskTitle,
                 taskDescription: req.body.taskDescription,
                 status: req.body.status,
-                file: req.file ? req.file.filename : null
+                files: fileNames
             });
             await task.save();
-            console.log('Task saved');
+            console.log('Task saved with multiple files');
             res.status(201).json(task);
         } catch (error) {
             res.status(500).json({ message: 'Internal Server Error' });
@@ -79,6 +81,26 @@ module.exports = (upload) => {
         } catch (error) {
             console.error('Error deleting task:', error.message);
             res.status(500).json({ error: 'Failed to delete task' });
+        }
+    });
+
+    router.get('/download/:id', async (req, res) => {
+        try {
+            const task = await Task.findById(req.params.id);
+            if (!task || !task.file) {
+                return res.status(404).json({ message: 'File not found' });
+            }
+
+            const filePath = `uploads/${task.file}`;
+            res.download(filePath, (err) => {
+                if (err) {
+                    console.error('Error downloading file:', err.message);
+                    res.status(500).json({ message: 'Internal Server Error' });
+                }
+            });
+        } catch (err) {
+            console.error('Error fetching task for download:', err.message);
+            res.status(500).json({ message: 'Internal Server Error' });
         }
     });
 

@@ -27,9 +27,11 @@ const taskSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    file: {
+    files: [
+        {
         type: String
-    }
+        }
+    ]
 });
 
 const task = mongoose.model('task', taskSchema );
